@@ -36,7 +36,7 @@ def assign(template, solution, known_values):
 def substitute(template, solution, known_values={}):
     # Collect all symbols outside of lists (outer symbols)
     outer_symbols = get_outer_symbols(template)
-    outer_symbols.append(InternalSymbol('root'))  # Avoids empty queries
+    #outer_symbols.append(InternalSymbol('root'))  # Avoids empty queries
     
     # TODO: we currently distinct all results, so multiplicity is not supported
     # To allow multiplicity, we need to be clever about our SQL - we need multiplicity

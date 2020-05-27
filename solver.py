@@ -1,4 +1,4 @@
-from symbol import S
+from symbol import S, InternalSymbol
 from transform import Transform
 from tree_walk import TreeWalk
 from misc import root, NoMatchException, table_name
@@ -47,7 +47,8 @@ class Solver(TreeWalk):
                     solution = solve(Eqn(lhs, rhs))
                     solutions[ind].append(solution)
                     
-                    solution[parent_table] = parent_row
+                    #solution[parent_table] = parent_row
+                    solution[InternalSymbol('_parent_id')] = parent_row
                     self.intermediate.append(self.current_table, solution)
                     #self.tables[self.current_table] = self.tables[self.current_table].append(solution, ignore_index=True)
                 except NoMatchException:

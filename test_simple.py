@@ -1,5 +1,4 @@
-from .simple import match_simple, format_simple
-from .symbol import S
+from __init__ import S, solve, substitute
 
 import unittest
 
@@ -10,9 +9,9 @@ class TestSimple(unittest.TestCase):
         data = {'name': 'john'}
         template = {'name': S('name')}
 
-        m = match_simple(template, data)
-        self.assertEqual(m, [{S('name'): 'john'}])
-        result = format_simple(template, m)
+        m = solve(template, data)
+        self.assertEqual(list(m), [{S('name'): 'john'}])
+        result = list(substitute(template, m))
         self.assertEqual(result, [data])  # Note the asymmetry: format_simple returns a list
 
     # Test 2: Two matches
@@ -21,9 +20,9 @@ class TestSimple(unittest.TestCase):
         match_template = [{'name': S('name')}]
         format_template = {'name': S('name')}  # Again, asymmetry.
 
-        m = match_simple(match_template, data)
-        self.assertEqual(m, [{S('name'): 'john'}, {S('name'): 'abe'}])
-        result = format_simple(format_template, m)
+        m = solve(match_template, data)
+        self.assertEqual(list(m), [{S('name'): 'john'}, {S('name'): 'abe'}])
+        result = list(substitute(format_template, m))
         self.assertEqual(result, data)
 
     # Test 3: Cartesian product
@@ -32,7 +31,7 @@ class TestSimple(unittest.TestCase):
                 {'name': 'allan', 'addresses': [{'state': 'CA'}, {'state': 'WA'}]}]
         match_template = [{'name': S('name'), 'addresses': [{'state': S('state')}]}]
 
-        m = match_simple(match_template, data)
+        m = list(solve(match_template, data))
         self.assertEqual(m, [{S('name'): 'john', S('state'): 'CA'},
                              {S('name'): 'john', S('state'): 'CT'},
                              {S('name'): 'allan', S('state'): 'CA'},
@@ -43,16 +42,18 @@ class TestSimple(unittest.TestCase):
         data = [{'name': 'john', 'addresses': [{'state': 'CA'}, {'state': 'CT'}]},
                 {'name': 'allan', 'addresses': [{'state': 'CA'}, {'state': 'WA'}]}]
         match_template = [{'name': S('name'), 'addresses': [{'state': S('state')}]}]
+        format_template = {S('name'): S('name')}
 
-        m = match_simple(match_template, data, symbols=set([S('name')]))
-        self.assertEqual(m, [{S('name'): 'john'}, {S('name'): 'allan'}])
+        m = solve(match_template, data)
+        result = list(substitute(format_template, m))
+        self.assertEqual(result, [{S('name'): 'john'}, {S('name'): 'allan'}])
 
     # Test 5: Search
     def test_search(self):
         data = [{'name': 'john', 'state': 'CT'}, {'name': 'allan', 'state': 'WA'}]
         template = [{'name': S('name'), 'state': 'WA'}]
 
-        m = match_simple(template, data)
+        m = list(solve(template, data))
         self.assertEqual(m, [{S('name'): 'allan'}])
 
     # Test 6: Uniqueing
@@ -60,9 +61,11 @@ class TestSimple(unittest.TestCase):
         data = [{'name': 'john', 'addresses': [{'state': 'CA'}, {'state': 'CT'}]},
                 {'name': 'allan', 'addresses': [{'state': 'CA'}, {'state': 'WA'}]}]
         template = [{'name': S('name'), 'addresses': [{'state': S('state')}]}]
+        format_template = {S('state'): S('state')}
 
-        m = match_simple(template, data, [S('state')])
-        self.assertEqual(m, [{S('state'): 'CA'}, {S('state'): 'CT'}, {S('state'): 'WA'}])
+        m = solve(template, data)
+        result = list(substitute(format_template, m))
+        self.assertEqual(result, [{S('state'): 'CA'}, {S('state'): 'CT'}, {S('state'): 'WA'}])
 
     # Test 7: Search on index w/in list
     def test_index_nested_in_list(self):
@@ -70,16 +73,18 @@ class TestSimple(unittest.TestCase):
                 {'name': 'allan', 'addresses': [{'state': 'CA'}, {'state': 'WA'}]}]
         template = [{'addresses': [{'state': 'CT'}], 'name': S('name')}]
 
-        m = match_simple(template, data)
+        m = list(solve(template, data))
         self.assertEqual(m, [{S('name'): 'john'}])
 
     # Test 8: Irrelevant info on one branch
     def test_irrelevant_side_info(self):
         data = {'u': [1, 2], 'v': [3, 4]}
         template = {'u': [S('u')], 'v': [S('v')]}
+        format_template = {S('u'):S('u')}
 
-        m = match_simple(template, data, [S('u')])
-        self.assertEqual(m, [{S('u'): 1}, {S('u'): 2}])
+        m = solve(template, data)
+        result = list(substitute(format_template, m))
+        self.assertEqual(result, [{S('u'): 1}, {S('u'): 2}])
 
 if __name__ == '__main__':
     unittest.main()
