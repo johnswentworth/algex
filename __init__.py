@@ -1,5 +1,7 @@
 from symbol import S
 from transform import Transform
+from error_handler import ErrorHandler
+from nullable import Nullable
 
 from intermediate import MemoryIntermediate
 from solver import solver, Eqn

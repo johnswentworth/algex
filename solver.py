@@ -1,5 +1,6 @@
 from symbol import S, InternalSymbol
 from transform import Transform
+from error_handler import ErrorHandler
 from tree_walk import TreeWalk
 from misc import root, NoMatchException, table_name
 
@@ -21,12 +22,17 @@ class Solver(TreeWalk):
         # We have f(x) = rhs, so to solve it, we solve x = inv(rhs)
         return solve(Eqn(eqn.lhs.x, eqn.lhs.inv(eqn.rhs)))
     
+    def solve_error_handler(self, eqn, solve):
+        try:
+            return solve(Eqn(eqn.lhs.x, eqn.rhs))
+        except Exception as e:
+            return eqn.lhs.handle_error(e, self.intermediate, self.current_table, eqn.rhs)
+    
     def solve_dict(self, eqn, solve):
         # NOTE: need to handle same-symbol conflicts
         # TODO: type check RHS
         solution = {}
         for k, v in eqn.lhs.items():
-            # TODO: implement Nullable and handle missing stuff in general
             solution.update(solve(Eqn(v, eqn.rhs.get(k, None))))
         return solution
     
@@ -70,6 +76,7 @@ class Solver(TreeWalk):
         super().__init__([
             (lambda eqn: isinstance(eqn.lhs, S), self.solve_symbol),
             (lambda eqn: isinstance(eqn.lhs, Transform), self.solve_transform),
+            (lambda eqn: isinstance(eqn.lhs, ErrorHandler), self.solve_error_handler),
             (lambda eqn: isinstance(eqn.lhs, dict), self.solve_dict),
             (lambda eqn: isinstance(eqn.lhs, list), self.solve_list),
             (lambda eqn: True, self.check_match)])

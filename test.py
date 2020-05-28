@@ -1,7 +1,7 @@
 #from .match import match
 #from .format import format
 #from .symbol import S, Nullable, TransSymbol as Trans
-from __init__ import S, Transform as Trans, solve, substitute
+from __init__ import S, Transform as Trans, Nullable, solve, substitute
 
 import random, unittest
 
@@ -60,26 +60,10 @@ class TestFull(unittest.TestCase):
 
         m = solve(template, data).get_single()  # Should not raise an exception
 
-    # Test 6: Nullable conserved by format when symbols remain
-    def test_nullable_conserved(self):
-        data = {'state':'CA'}
-        template = {'person': Nullable([{'name':S('name')}]), 'state':S('state')}
-
-        template = substitute(template, {S('state'): 'CA'})
-        m = solve(template, data).get_single()  # Should not raise an exception
-
-        template = substitute(template, {S('name'):'john'})
-        exception = None
-        try:
-            m = solve(template, data).get_single()  # Should raise an exception
-        except Exception as e:
-            exception = e
-        self.assertIsNotNone(exception)
-
-    # Test 7: Transformation closed-loop test
+    # Test 6: Transformation closed-loop test
     def test_transformation(self):
         data = {'state':'California'}
-        template = {'state': Trans(S('state'), {'CA': 'California'})}
+        template = {'state': Trans(S('state'), function={'CA': 'California'}, inverse={'California': 'CA'})}
 
         m = solve(template, data)
         self.assertEqual(m.get_single()[S('state')], 'CA')
@@ -87,7 +71,7 @@ class TestFull(unittest.TestCase):
         result = substitute(template, m)
         self.assertEqual(list(result), [data])
 
-    # Test 7.5: Transformation closed-loop test with function transformation
+    # Test 7: Transformation closed-loop test with function transformation
     def test_transformation_2(self):
         data = {'yrs': 12.5}
         parse_template = {'yrs': S('yrs')}
@@ -143,7 +127,6 @@ class TestFull(unittest.TestCase):
         self.assertEqual(list(result), expected)
 
     # TransSymbol invertibility: things were failing if forward(reverse(x)) != x. Fixed now.
-    # Found this one out the hard way - h/t Marc
     def test_trans_list_bug(self):
         match_template = {
             "create_date": Trans(S('created_at'), inverse=lambda x: x + '!'),

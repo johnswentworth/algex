@@ -2,6 +2,7 @@ from functools import reduce
 
 from symbol import S
 from transform import Transform
+from error_handler import ErrorHandler
 from misc import table_name, root
 from tree_walk import TreeWalk
 
@@ -25,6 +26,7 @@ def get_tree_structure(lhs):
     # We'll first extract the relevant structure as a tree, then flatten and invert
     walker = TreeWalk([
         (lambda lhs: isinstance(lhs, Transform), lambda tree, walk: walk(tree.x)),
+        (lambda lhs: isinstance(lhs, ErrorHandler), lambda tree, walk: walk(tree.x)),
         (lambda lhs: isinstance(lhs, dict), lambda tree, walk: reduce(update, [walk(v) for v in tree.values()], {})),
         (lambda lhs: isinstance(lhs, list), lambda tree, walk: {table_name(item): walk(item) for item in tree}),
         (lambda lhs: True, lambda tree: {})])
@@ -52,6 +54,7 @@ def get_symbol_directory(lhs):
     walker = TreeWalk([
         (lambda lhs: isinstance(lhs, S), lambda tree: {tree}),
         (lambda lhs: isinstance(lhs, Transform), lambda tree, walk: walk(tree.x)),
+        (lambda lhs: isinstance(lhs, ErrorHandler), lambda tree, walk: walk(tree.x)),
         (lambda lhs: isinstance(lhs, dict), lambda tree, walk: reduce(set.union, map(walk, tree.values()))),
         (lambda lhs: isinstance(lhs, list), handle_list),
         (lambda lhs: True, lambda tree: set())])

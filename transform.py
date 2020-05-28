@@ -5,6 +5,13 @@ def identity(x):
 
 class Transform(BaseSymbol):
     def __init__(self, x, function=identity, inverse=identity):
+        if isinstance(function, dict):
+            f_d = function
+            function = lambda x: f_d[x]
+        if isinstance(inverse, dict):
+            i_d = inverse
+            inverse = lambda x: i_d[x]
+        
         self.x = x
         self.f = function
         self.inv = inverse
