@@ -1,4 +1,4 @@
-from __init__ import S, solve, substitute
+from algex import S, solve, substitute
 
 import unittest
 

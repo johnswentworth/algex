@@ -1,4 +1,4 @@
-from symbol import BaseSymbol
+from .symbol import BaseSymbol
 
 def identity(x):
     return x

@@ -1,7 +1,4 @@
-#from .match import match
-#from .format import format
-#from .symbol import S, Nullable, TransSymbol as Trans
-from __init__ import S, Transform as Trans, Nullable, solve, substitute
+from algex import S, Transform as Trans, Nullable, solve, substitute
 
 import random, unittest
 

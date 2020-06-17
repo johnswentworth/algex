@@ -1,4 +1,4 @@
-from __init__ import S, solve, substitute
+from algex import S, solve, substitute
 
 template = {
     "person": {
@@ -15,3 +15,4 @@ data = {
 }
 
 solutions = solve(template, data)
+print(list(solutions))

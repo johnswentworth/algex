@@ -1,10 +1,10 @@
 from functools import reduce
 
-from symbol import S
-from transform import Transform
-from error_handler import ErrorHandler
-from misc import table_name, root
-from tree_walk import TreeWalk
+from .symbol import S
+from .transform import Transform
+from .error_handler import ErrorHandler
+from .misc import table_name, root
+from .tree_walk import TreeWalk
 
 # Test data
 data = [{'name': 'john', 'addresses': [{'state': 'CA'}, {'state': 'CT'}], 'houses':[{'state': 'CT'}]},

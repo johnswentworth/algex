@@ -1,12 +1,12 @@
-from symbol import S
-from transform import Transform
-from error_handler import ErrorHandler
+from .symbol import S
+from .transform import Transform
+from .error_handler import ErrorHandler
 
-from solver import solver, Eqn
-from intermediate import PandasIntermediate, MemoryIntermediate, Intermediate
-from sqlizer import update
+from .solver import solver, Eqn
+from .intermediate import PandasIntermediate, MemoryIntermediate, Intermediate
+from .sqlizer import update
 
-from tree_walk import TreeWalk
+from .tree_walk import TreeWalk
 from functools import reduce
 from itertools import chain
 from collections import namedtuple

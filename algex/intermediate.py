@@ -1,7 +1,7 @@
 from functools import reduce
 
-from symbol import S, InternalSymbol
-from sqlizer import get_tree_structure, get_symbol_directory, root #, build_schema
+from .symbol import S, InternalSymbol
+from .sqlizer import get_tree_structure, get_symbol_directory, root #, build_schema
 
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, ForeignKey

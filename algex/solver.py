@@ -1,8 +1,8 @@
-from symbol import S, InternalSymbol
-from transform import Transform
-from error_handler import ErrorHandler
-from tree_walk import TreeWalk
-from misc import root, NoMatchException, table_name
+from .symbol import S, InternalSymbol
+from .transform import Transform
+from .error_handler import ErrorHandler
+from .tree_walk import TreeWalk
+from .misc import root, NoMatchException, table_name
 
 from collections import namedtuple
 

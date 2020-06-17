@@ -1,4 +1,4 @@
-from symbol import InternalSymbol
+from .symbol import InternalSymbol
 root = InternalSymbol('root')
 
 class NoMatchException(Exception):

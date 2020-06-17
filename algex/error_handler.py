@@ -1,4 +1,4 @@
-from symbol import BaseSymbol
+from .symbol import BaseSymbol
 
 class ErrorHandler(BaseSymbol):
     def __init__(self, x):

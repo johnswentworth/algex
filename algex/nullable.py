@@ -1,7 +1,7 @@
-from symbol import InternalSymbol
-from misc import root
-from sqlizer import get_symbol_directory
-from error_handler import ErrorHandler
+from .symbol import InternalSymbol
+from .misc import root
+from .sqlizer import get_symbol_directory
+from .error_handler import ErrorHandler
 
 class Nullable(ErrorHandler):
     def __init__(self, x):
