@@ -38,7 +38,7 @@ class TestFull(unittest.TestCase):
         m = solve(match_template, data)
         result = substitute(format_template, m)
         self.assertEqual(list(result), expected)
-
+    
     # Test 4: Cartesian product stress test
     def test_cartesian_product(self):
         data = {'u':[random.random() for i in range(1000)],
@@ -52,7 +52,7 @@ class TestFull(unittest.TestCase):
         m = solve(template, data) # Should take several decades if cartesian products are handled naively
         result = substitute(template, m)
         self.assertEqual(list(result), [data])
-
+    
     # Test 5: Nullable
     def test_nullable(self):
         data = {}
@@ -165,6 +165,5 @@ class TestFull(unittest.TestCase):
             err = e
         self.assertIsNotNone(err)
 
-
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(module='test')

@@ -1,5 +1,4 @@
 from functools import reduce
-import pandas as pd
 
 from symbol import S, InternalSymbol
 from sqlizer import get_tree_structure, get_symbol_directory, root #, build_schema
@@ -85,7 +84,11 @@ class SQLIntermediate(Intermediate):
     
     def build(self, lhs):
         # TODO: either taskify or memoize so we don't repeat work when subclasses need metadata first
-        self.symbol_directory = get_symbol_directory(lhs) # list symbols in each table
+        try:
+            self.symbol_directory  # Check if subclass already computed directory
+        except:
+            self.symbol_directory = get_symbol_directory(lhs) # list symbols in each table
+        
         self.reverse_symbol_directory = {} # list tables containing each symbol
         for table_sym in self.symbol_directory:
             for sym in self.symbol_directory[table_sym]:
@@ -97,6 +100,8 @@ class SQLIntermediate(Intermediate):
         Session = sessionmaker(bind=self.engine)
         self.session = Session()
         
+        # Fake it until we make it
+        self.cache = {table: [] for table in self.model_classes}
         # We need counts all the time while solving, so keep them python-side
         self.counts = {table: 0 for table in self.model_classes}
         
@@ -120,13 +125,16 @@ class SQLIntermediate(Intermediate):
         return model_classes
     
     def append(self, table, row):
-        model = self.model_classes[table]
-        self.session.add(model(**{k.s: v for k, v in row.items()}))
+        self.cache[table].append(row)
         self.counts[table] += 1
     
     def finish(self):
         model = self.model_classes[root]
         self.session.add(model(**{'_id': 1}))  # TODO: for some reason autoincrement starts at 1???
+        for table, rows in self.cache.items():
+            # TODO: do we need to insert objects to parent tables before child tables?
+            model = self.model_classes[table]
+            self.session.bulk_save_objects([model(**{k.s: v for k, v in row.items()}) for row in rows])
         self.session.commit()
     
     def size(self, table):
@@ -246,6 +254,7 @@ class MemoryIntermediate(SQLIntermediate):
 class PandasIntermediate(Intermediate):
     # Mainly useful for testing the solver.
     def build(self, lhs):
+        import pandas as pd  # Huge library, don't want to require it
         parents = get_tree_structure(lhs)
         self.solutions = {table: pd.DataFrame() for table in parents}
         self.solutions[root] = pd.DataFrame()

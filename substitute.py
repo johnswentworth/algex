@@ -1,14 +1,15 @@
-from symbol import S, InternalSymbol
+from symbol import S
 from transform import Transform
 from error_handler import ErrorHandler
 
 from solver import solver, Eqn
 from intermediate import PandasIntermediate, MemoryIntermediate, Intermediate
-from sqlizer import get_tree_structure, get_symbol_directory, update
+from sqlizer import update
 
 from tree_walk import TreeWalk
 from functools import reduce
 from itertools import chain
+from collections import namedtuple
 
 # Test data
 data = [{'name': 'john', 'addresses': [{'state': 'CA'}, {'state': 'CT'}], 'houses':[{'state': 'CT'}]},
@@ -19,21 +20,38 @@ match_template = [{'name': S('name'), 'addresses': [{'state': S('state')}], 'hou
 #soln = solver(Eqn(match_template, data), intermediate)
 
 get_outer_symbols = TreeWalk([
-        (lambda tree: isinstance(tree, S), lambda tree: [tree]),
+        (lambda tree: isinstance(tree, S), lambda tree, walk: [tree]),
         (lambda tree: isinstance(tree, Transform), lambda tree, walk: walk(tree.x)),
         (lambda tree: isinstance(tree, dict), lambda tree, walk: reduce(list.__add__, [walk(v) for v in tree.values()])),
-        (lambda tree: True, lambda tree: [])])
+        (lambda tree: True, lambda tree, walk: [])])
+
+dispatch_cache = {}
+Substitution = namedtuple('Substitution', ['expr', 'solutions', 'known_values'])
+class Assigner(TreeWalk):
+    def __init__(self):
+        super().__init__([
+        (lambda tree: isinstance(tree.expr, S), lambda tree, walk: tree.known_values[tree.expr]),
+        (lambda tree: isinstance(tree.expr, Transform), lambda tree, walk: tree.expr.f(walk(Substitution(tree.expr.x, tree.solutions, tree.known_values)))),
+        (lambda tree: isinstance(tree.expr, ErrorHandler), lambda tree, walk: walk(Substitution(tree.expr.x, tree.solutions, tree.known_values))),
+        (lambda tree: isinstance(tree.expr, dict), lambda tree, walk: {k: walk(Substitution(v, tree.solutions, tree.known_values)) for k, v in tree.expr.items()}),
+        # NOTE: next line is the one to change if we want results to contain iterators instead of lists.
+        (lambda tree: isinstance(tree.expr, list), lambda tree, walk: list(chain(*[substitute(subtree, tree.solutions, tree.known_values) for subtree in tree.expr]))),
+        (lambda tree: True, lambda tree, walk: tree.expr)])
+    
+    def walk(self, tree):
+        tp = type(tree.expr)
+        if tp in dispatch_cache:
+            return dispatch_cache[tp](tree, self.walk)
+        
+        for condition, rule in self.cases.items():
+            if condition(tree):
+                dispatch_cache[tp] = rule
+                return rule(tree, self.walk)
+        return tree
+assigner = Assigner()
 
 def assign(template, solution, known_values):
-    walker = TreeWalk([
-        (lambda tree: isinstance(tree, S), lambda tree: known_values[tree]),
-        (lambda tree: isinstance(tree, Transform), lambda tree, walk: tree.f(walk(tree.x))),
-        (lambda tree: isinstance(tree, ErrorHandler), lambda tree, walk: walk(tree.x)),
-        (lambda tree: isinstance(tree, dict), lambda tree, walk: {k: walk(v) for k, v in tree.items()}),
-        # NOTE: next line is the one to change if we want results to contain iterators instead of lists.
-        (lambda tree: isinstance(tree, list), lambda tree, walk: list(chain(*[substitute(subtree, solution, known_values) for subtree in tree]))),
-        (lambda tree: True, lambda tree: tree)])
-    return walker(template)
+    return assigner(Substitution(template, solution, known_values))
 
 def substitute_list(template, solutions, known_values={}):
     for soln in solutions:

@@ -6,9 +6,6 @@ from error_handler import ErrorHandler
 from misc import table_name, root
 from tree_walk import TreeWalk
 
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, ForeignKey
-
 # Test data
 data = [{'name': 'john', 'addresses': [{'state': 'CA'}, {'state': 'CT'}], 'houses':[{'state': 'CT'}]},
         {'name': 'allan', 'addresses': [{'state': 'CA'}, {'state': 'WA'}], 'houses':[{'state': 'WA'}]}]
@@ -29,7 +26,7 @@ def get_tree_structure(lhs):
         (lambda lhs: isinstance(lhs, ErrorHandler), lambda tree, walk: walk(tree.x)),
         (lambda lhs: isinstance(lhs, dict), lambda tree, walk: reduce(update, [walk(v) for v in tree.values()], {})),
         (lambda lhs: isinstance(lhs, list), lambda tree, walk: {table_name(item): walk(item) for item in tree}),
-        (lambda lhs: True, lambda tree: {})])
+        (lambda lhs: True, lambda tree, walk: {})])
     structure = {root: walker(lhs)}
     
     def invert_and_flatten(tree):
@@ -52,11 +49,11 @@ def get_symbol_directory(lhs):
         return set()
     
     walker = TreeWalk([
-        (lambda lhs: isinstance(lhs, S), lambda tree: {tree}),
+        (lambda lhs: isinstance(lhs, S), lambda tree, walk: {tree}),
         (lambda lhs: isinstance(lhs, Transform), lambda tree, walk: walk(tree.x)),
         (lambda lhs: isinstance(lhs, ErrorHandler), lambda tree, walk: walk(tree.x)),
         (lambda lhs: isinstance(lhs, dict), lambda tree, walk: reduce(set.union, map(walk, tree.values()))),
         (lambda lhs: isinstance(lhs, list), handle_list),
-        (lambda lhs: True, lambda tree: set())])
+        (lambda lhs: True, lambda tree, walk: set())])
     directory[root] = walker(lhs)
     return directory

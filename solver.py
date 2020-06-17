@@ -14,8 +14,9 @@ except ModuleNotFoundError as e:
 
 # TODO: cleaner format. Rather than nesting tables, use a foreign key setup to link to conceptually "nested" tables.
 Eqn = namedtuple('Equation', ['lhs', 'rhs'])
+dispatch_cache = {}
 class Solver(TreeWalk):
-    def solve_symbol(self, eqn):
+    def solve_symbol(self, eqn, solve):
         return {eqn.lhs: eqn.rhs}
     
     def solve_transform(self, eqn, solve):
@@ -67,7 +68,7 @@ class Solver(TreeWalk):
                 raise NoMatchException('No match found for:', eqn.lhs[ind])
         return {}
     
-    def check_match(self, eqn):
+    def check_match(self, eqn, solve):
         if eqn.lhs != eqn.rhs:
             raise NoMatchException('LHS does not match data:', eqn.lhs)
         return {}
@@ -80,6 +81,17 @@ class Solver(TreeWalk):
             (lambda eqn: isinstance(eqn.lhs, dict), self.solve_dict),
             (lambda eqn: isinstance(eqn.lhs, list), self.solve_list),
             (lambda eqn: True, self.check_match)])
+    
+    def walk(self, tree):
+        tp = type(tree.lhs)
+        if tp in dispatch_cache:
+            return dispatch_cache[tp](tree, self.walk)
+        
+        for condition, rule in self.cases.items():
+            if condition(tree):
+                dispatch_cache[tp] = rule
+                return rule(tree, self.walk)
+        return tree
     
     def __call__(self, eqn, intermediate):
         self.intermediate = intermediate

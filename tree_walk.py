@@ -1,20 +1,8 @@
-from inspect import signature
 from collections import OrderedDict
-
-def wrap(rule):
-    def new_rule(tree, walk):
-        return rule(tree)
-    return new_rule
 
 class TreeWalk:
     def __init__(self, cases):
-        case_list = []
-        for condition, rule in cases:
-            sig = signature(rule)
-            if len(sig.parameters) == 1:
-                rule = wrap(rule)
-            case_list.append((condition, rule))
-        self.cases = OrderedDict(case_list)
+        self.cases = OrderedDict(cases)
     
     def walk(self, tree):
         for condition, rule in self.cases.items():
