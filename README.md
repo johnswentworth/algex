@@ -14,7 +14,7 @@ This is primarily useful for transforming data from one format to another. Typic
 
 Why write transformations as equations, rather than writing out `x = data["person"]["firstName"]; y = data["person"]["lastName"]; …`? A few advantages:
  - When we write data transformations as equations, the structure of our code matches the structure of our data - indeed, our “code” is essentially a template whose structure matches the data. We'll see examples below. This makes the code much more readable and maintainable when dealing with large, deeply-nested data structures.
- - This is a declarative (rather than imperative) method for specifying data transformations, so it comes with the usual benefits of declarativity. In particular, a library for solving data-structure-equations can handle missing data and other errors in standard ways without having to hand-code checks for every single field - especially useful when entire nested structures can be missing. See the Nullable examples below.
+ - This is a declarative (rather than imperative) method for specifying data transformations, so it comes with the usual benefits of declarativity. In particular, a library for solving data-structure-equations can handle missing data and other errors in standard ways without having to hand-code checks for every single field - especially useful when entire nested structures can be missing. See the Nullable examples in test.py.
  - Because the “code” defining a transformation is itself a data structure, we can potentially track/visualize/audit data flow without having to track arbitrary code.
 
 ## Basic Example
